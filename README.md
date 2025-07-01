@@ -1,74 +1,85 @@
+🧩 QUICKALIAS (qq) - Quick Alias Management
+Quickalias is a command-line tool designed to streamline your shell alias management. It provides:
 
-QUICKALIAS (qq) - Quick Alias Management
-QUICKALIAS (or qq) is a command-line tool designed to streamline your shell alias management, offering both user-level and global alias control, easy listing, searching, and robust configuration options.
+User-level and global alias control
 
-Installation & Quick Cleanup
-To quickly try quickalias and then clean up the downloaded files, use the following command sequence:
+Easy listing & searching
 
-Bash
+Robust configuration options
 
+📦 Installation & Quick Cleanup
+To quickly try out quickalias and remove the files afterward:
+
+bash
+Kopyala
+Düzenle
 git clone https://github.com/hakangoksu/quickalias.git
 cd quickalias
 chmod +x install.sh
 ./install.sh
 cd ..
 rm -rf quickalias
-Uninstallation
-To remove quickalias from your system, navigate into the cloned directory and run the install.sh script with the --uninstall flag:
+❌ Uninstallation
+To completely remove quickalias from your system:
 
-Bash
-
+bash
+Kopyala
+Düzenle
 git clone https://github.com/hakangoksu/quickalias.git
 cd quickalias
 chmod +x install.sh
 ./install.sh --uninstall
 cd ..
 rm -rf quickalias
-Usage
-Alias Management
-qq add <alias> "<command>": Add a user-level alias.
+Alternatively, you can run qq uninstall after installation.
 
-qq set <alias> "<command>": Add a global alias (requires sudo).
+🚀 Usage
+📁 Alias Management
+bash
+Kopyala
+Düzenle
+qq add "<name>=<command>"       # Add a user-level alias
+qq set "<name>=<command>"       # Add a global alias (requires sudo)
+qq remove <name>                # Remove a user-level alias
+qq unset <name>                 # Remove a global alias (requires sudo)
+📋 Listing & Searching
+bash
+Kopyala
+Düzenle
+qq list [keyword]               # List all aliases or filter by keyword
+qq search <term>                # Search aliases by name or command
+⚙️ System & Integration
+bash
+Kopyala
+Düzenle
+qq control                      # Display system status and detect conflicts
+qq setup                        # Set up shell integration
+qq init                         # Initialize aliases (used by the shell)
+qq uninstall                    # Uninstall quickalias (same as install.sh --uninstall)
+🔧 Configuration
+bash
+Kopyala
+Düzenle
+qq config reset                 # Reset configuration
+qq config backup                # Show backup locations
+qq config export [path]         # Export aliases to file
+qq config import <file>         # Import aliases from file
+ℹ️ Other
+bash
+Kopyala
+Düzenle
+qq version                      # Show current version
+qq help                         # Display help message
+🖥️ Compatibility
+Currently supported on:
 
-qq remove <alias>: Remove a user-level alias.
+✅ Arch Linux
 
-qq unset <alias>: Remove a global alias (requires sudo).
+Support for other Linux distributions is under development.
 
-Listing and Searching
-qq list [keyword]: List all aliases or filter by a keyword.
+💡 Tips
+Run qq setup after installation to integrate with your shell.
 
-qq search <keyword>: Search for aliases by name or command.
+User-level aliases override global aliases with the same name.
 
-System
-qq control: Display system status and potential conflicts.
-
-qq setup: Set up shell integration.
-
-qq init: Initialize aliases (used by the shell).
-
-qq uninstall: Uninstall quickalias from your system. (This also performs the uninstall, same as install.sh --uninstall).
-
-Configuration
-qq config reset: Reset configuration.
-
-qq config backup: Show existing backups.
-
-qq config export [path]: Export aliases to a file.
-
-qq config import <path>: Import aliases from a file.
-
-Other
-qq version: Display the tool version.
-
-qq help: Show this help message.
-
-Compatibility
-Currently, quickalias officially supports Arch Linux. We are actively working on expanding support to other operating systems in future releases.
-
-Tips
-Run qq setup first to integrate qq with your shell.
-
-User-level aliases take precedence over global aliases with the same name.
-
-Managing global aliases (set, unset) may require sudo privileges.
-
+sudo may be required for managing global aliases (qq set, qq unset).
