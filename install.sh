@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 BINARY_NAME="qq"
 INSTALL_DIR="/usr/local/bin"
 GLOBAL_CONFIG_DIR="/etc/quickalias"
-# SYSTEMD_SERVICE_DIR="/etc/systemd/system" # This is not used in the script, can be removed if not needed for future features
+SYSTEMD_SERVICE_DIR="/etc/systemd/system"
 COMPLETION_DIR="/usr/share/bash-completion/completions"
 ZSH_COMPLETION_DIR="/usr/share/zsh/site-functions"
 
@@ -444,27 +444,12 @@ main() {
     detect_distro
 
     # Only proceed with supported distributions for now
-    if [[ "$DISTRO" == "arch" ]]; then
-        print_warning "For Arch Linux, it's recommended to build and install QuickAlias via a PKGBUILD file."
-        print_info "This script is primarily for manual installations on other distributions."
-        read -p "Do you still want to proceed with this script for manual installation on Arch? (y/N): " -r
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Installation cancelled. Please consider creating a PKGBUILD for Arch Linux."
-            exit 0
-        fi
-    elif [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
-        print_warning "Ubuntu/Debian support will be added in future versions for a more guided experience."
-        print_info "For now, ensure you have: build-essential (sudo apt install build-essential)"
-        read -p "Continue anyway with manual installation? (y/N): " -r
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Installation cancelled."
-            exit 0
-        fi
-    else
-        print_warning "Unknown distribution. This script will attempt a generic installation."
+    if [[ "$DISTRO" != "arch" ]]; then
+        print_warning "Currently only Arch Linux is fully supported."
+        print_info "You can still install manually, but some features may not work."
         read -p "Continue anyway? (y/N): " -r
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Installation cancelled."
+            print_info "Installation cancelled"
             exit 0
         fi
     fi
