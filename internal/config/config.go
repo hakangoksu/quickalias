@@ -135,5 +135,3 @@ func ResetConfig(cfg *Config, version string) error {
 	fmt.Printf("%s✅ %s%s\n", ui.ColorGreen, ui.Msg.ConfigResetSuccess, ui.ColorReset)
 	return nil
 }
-
-//

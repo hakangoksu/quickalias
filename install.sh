@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit on any error
+set -e # Exit on any error
 
 # Colors for output
 RED='\033[0;31m'
@@ -10,12 +10,14 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
+GITHUB_REPO="hakangoksu/quickalias"
+REPO_NAME="quickalias"
 BINARY_NAME="qq"
 INSTALL_DIR="/usr/local/bin"
 GLOBAL_CONFIG_DIR="/etc/quickalias"
-# SYSTEMD_SERVICE_DIR="/etc/systemd/system" # This is not used in the script, can be removed if not needed for future features
 COMPLETION_DIR="/usr/share/bash-completion/completions"
 ZSH_COMPLETION_DIR="/usr/share/zsh/site-functions"
+TEMP_DIR=$(mktemp -d) # Temporary directory for cloning
 
 # Print colored output
 print_info() {
@@ -33,54 +35,6 @@ print_warning() {
 print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
-
-# --- START: New Automatic Cloning and Cleanup Logic ---
-
-REPO_URL="https://github.com/hakangoksu/quickalias.git"
-REPO_NAME="quickalias"
-TEMP_CLONE_DIR="" # Global variable for cleanup function to access
-
-# This function runs when the script exits (successfully or with error)
-cleanup() {
-    if [[ -n "$TEMP_CLONE_DIR" && -d "$TEMP_CLONE_DIR" ]]; then
-        print_info "Cleaning up temporary files: $TEMP_CLONE_DIR"
-        rm -rf "$TEMP_CLONE_DIR"
-        print_success "Temporary files cleaned."
-    fi
-}
-
-# Register the cleanup function to be called on script exit
-trap cleanup EXIT
-
-# Check current directory and clone the repository if needed
-check_and_clone_repo() {
-    # If the script is already running from within the repository
-    if [[ -d ".git" && "$(basename "$(pwd)")" == "$REPO_NAME" ]]; then
-        print_info "quickalias repository already exists. Proceeding directly."
-        return 0 # We are already in the correct directory, no action needed
-    fi
-
-    # If the script was called via curl or from another location and the repo is not present
-    print_info "quickalias repository not found or not in the correct directory. Cloning temporarily..."
-    TEMP_CLONE_DIR=$(mktemp -d) # Create a temporary directory
-
-    print_info "Cloning repository: $REPO_URL -> $TEMP_CLONE_DIR/$REPO_NAME"
-    git clone "$REPO_URL" "$TEMP_CLONE_DIR/$REPO_NAME"
-
-    if [[ ! -d "$TEMP_CLONE_DIR/$REPO_NAME" ]]; then
-        print_error "Repository cloning failed. Please check your internet connection."
-        exit 1
-    fi
-
-    print_info "Changing to cloned directory: $TEMP_CLONE_DIR/$REPO_NAME"
-    cd "$TEMP_CLONE_DIR/$REPO_NAME"
-
-    # Even if called with --uninstall, cloning is done first,
-    # as uninstall might also need files from the repo.
-    print_success "Repository successfully cloned and directory changed."
-}
-
-# --- END: New Automatic Cloning and Cleanup Logic ---
 
 # Check if running as root
 check_root() {
@@ -132,7 +86,7 @@ check_go() {
 
 # Install dependencies based on distribution
 install_dependencies() {
-    case $DISTRO ;;
+    case $DISTRO in
         "arch")
             print_info "Installing dependencies on Arch Linux..."
             if ! pacman -Qi base-devel &> /dev/null; then
@@ -150,16 +104,31 @@ install_dependencies() {
     esac
 }
 
+# Clone the repository
+clone_repo() {
+    print_info "Cloning QuickAlias repository into $TEMP_DIR..."
+    if ! command -v git &> /dev/null; then
+        print_error "Git is not installed. Please install Git first."
+        exit 1
+    fi
+    git clone "https://github.com/$GITHUB_REPO.git" "$TEMP_DIR/$REPO_NAME"
+    if [[ ! -d "$TEMP_DIR/$REPO_NAME" ]]; then
+        print_error "Failed to clone repository."
+        exit 1
+    fi
+    print_success "Repository cloned successfully."
+    cd "$TEMP_DIR/$REPO_NAME"
+}
+
 # Build the binary
 build_binary() {
     print_info "Building QuickAlias binary..."
 
     if [[ ! -f "main.go" ]]; then
-        print_error "main.go not found. Please run this script from the QuickAlias source directory."
+        print_error "main.go not found in the cloned repository. Build failed."
         exit 1
     fi
 
-    # Go build compiles all package files, not just main.go
     go build -ldflags="-s -w" -o "$BINARY_NAME"
 
     if [[ ! -f "$BINARY_NAME" ]]; then
@@ -169,7 +138,6 @@ build_binary() {
 
     print_success "Binary built successfully"
 }
-
 
 # Install binary
 install_binary() {
@@ -406,22 +374,23 @@ setup_arch_integration() {
 post_install() {
     print_info "Running post-installation setup..."
 
-    # Clean up build artifacts
-    if [[ -f "$BINARY_NAME" ]]; then
-        rm "$BINARY_NAME"
+    # Clean up temporary build artifacts
+    if [[ -d "$TEMP_DIR" ]]; then
+        print_info "Cleaning up temporary files..."
+        rm -rf "$TEMP_DIR"
     fi
 
     print_success "Installation completed successfully!"
     echo
     print_info "Next steps:"
-    echo "  1. Run: qq setup   (to configure shell integration)"
-    echo "  2. Restart your terminal or run: source ~/.bashrc"
-    echo "  3. Start adding aliases: qq add ll 'ls -la'"
-    echo "  4. View help: qq help"
-    echo "  5. Check man page: man qq"
+    echo "  1. Run: ${GREEN}qq setup${NC}   (to configure shell integration)"
+    echo "  2. Restart your terminal or run: ${GREEN}source ~/.bashrc${NC}"
+    echo "  3. Start adding aliases: ${GREEN}qq add ll 'ls -la'${NC}"
+    echo "  4. View help: ${GREEN}qq help${NC}"
+    echo "  5. Check man page: ${GREEN}man qq${NC}"
     echo
     print_info "Shell completions are available for bash and zsh"
-    print_info "Global aliases require sudo: sudo qq set <alias> \"<command>\""
+    print_info "Global aliases require sudo: ${GREEN}sudo qq set <alias> \"<command>\"${NC}"
 }
 
 # Uninstall function
@@ -465,10 +434,6 @@ main() {
     echo "================================="
     echo
 
-    # First, check and clone the repository if necessary.
-    # This ensures that even if called with --uninstall, the script has access to necessary files.
-    check_and_clone_repo
-
     # Handle uninstall
     if [[ "$1" == "--uninstall" ]]; then
         uninstall
@@ -480,15 +445,17 @@ main() {
         echo "Usage: $0 [OPTIONS]"
         echo
         echo "Options:"
-        echo "  --uninstall     Uninstall QuickAlias"
-        echo "  --help, -h      Show this help"
+        echo "  --uninstall    Uninstall QuickAlias"
+        echo "  --help, -h     Show this help"
         echo
         echo "This script will:"
+        echo "  • Clone the QuickAlias repository from GitHub"
         echo "  • Build the QuickAlias binary"
         echo "  • Install it to $INSTALL_DIR"
         echo "  • Set up shell completions"
         echo "  • Create man page"
         echo "  • Configure system integration"
+        echo "  • Clean up downloaded repository files"
         exit 0
     fi
 
@@ -521,6 +488,7 @@ main() {
         fi
     fi
 
+    clone_repo # Call this before check_go and build_binary to get the source
     check_go
     install_dependencies
     build_binary
