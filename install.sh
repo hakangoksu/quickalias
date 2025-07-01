@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e # Exit on any error
+set -e  # Exit on any error
 
 # Colors for output
 RED='\033[0;31m'
@@ -10,14 +10,12 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-GITHUB_REPO="hakangoksu/quickalias"
-REPO_NAME="quickalias"
 BINARY_NAME="qq"
 INSTALL_DIR="/usr/local/bin"
 GLOBAL_CONFIG_DIR="/etc/quickalias"
+# SYSTEMD_SERVICE_DIR="/etc/systemd/system" # This is not used in the script, can be removed if not needed for future features
 COMPLETION_DIR="/usr/share/bash-completion/completions"
 ZSH_COMPLETION_DIR="/usr/share/zsh/site-functions"
-TEMP_DIR=$(mktemp -d) # Temporary directory for cloning
 
 # Print colored output
 print_info() {
@@ -104,31 +102,16 @@ install_dependencies() {
     esac
 }
 
-# Clone the repository
-clone_repo() {
-    print_info "Cloning QuickAlias repository into $TEMP_DIR..."
-    if ! command -v git &> /dev/null; then
-        print_error "Git is not installed. Please install Git first."
-        exit 1
-    fi
-    git clone "https://github.com/$GITHUB_REPO.git" "$TEMP_DIR/$REPO_NAME"
-    if [[ ! -d "$TEMP_DIR/$REPO_NAME" ]]; then
-        print_error "Failed to clone repository."
-        exit 1
-    fi
-    print_success "Repository cloned successfully."
-    cd "$TEMP_DIR/$REPO_NAME"
-}
-
 # Build the binary
 build_binary() {
     print_info "Building QuickAlias binary..."
 
     if [[ ! -f "main.go" ]]; then
-        print_error "main.go not found in the cloned repository. Build failed."
+        print_error "main.go not found. Please run this script from the QuickAlias source directory."
         exit 1
     fi
 
+    # Go build tüm paket dosyalarını derler, sadece main.go değil
     go build -ldflags="-s -w" -o "$BINARY_NAME"
 
     if [[ ! -f "$BINARY_NAME" ]]; then
@@ -138,6 +121,7 @@ build_binary() {
 
     print_success "Binary built successfully"
 }
+
 
 # Install binary
 install_binary() {
@@ -374,23 +358,22 @@ setup_arch_integration() {
 post_install() {
     print_info "Running post-installation setup..."
 
-    # Clean up temporary build artifacts
-    if [[ -d "$TEMP_DIR" ]]; then
-        print_info "Cleaning up temporary files..."
-        rm -rf "$TEMP_DIR"
+    # Clean up build artifacts
+    if [[ -f "$BINARY_NAME" ]]; then
+        rm "$BINARY_NAME"
     fi
 
     print_success "Installation completed successfully!"
     echo
     print_info "Next steps:"
-    echo "  1. Run: ${GREEN}qq setup${NC}   (to configure shell integration)"
-    echo "  2. Restart your terminal or run: ${GREEN}source ~/.bashrc${NC}"
-    echo "  3. Start adding aliases: ${GREEN}qq add ll 'ls -la'${NC}"
-    echo "  4. View help: ${GREEN}qq help${NC}"
-    echo "  5. Check man page: ${GREEN}man qq${NC}"
+    echo "  1. Run: qq setup    (to configure shell integration)"
+    echo "  2. Restart your terminal or run: source ~/.bashrc"
+    echo "  3. Start adding aliases: qq add ll 'ls -la'"
+    echo "  4. View help: qq help"
+    echo "  5. Check man page: man qq"
     echo
     print_info "Shell completions are available for bash and zsh"
-    print_info "Global aliases require sudo: ${GREEN}sudo qq set <alias> \"<command>\"${NC}"
+    print_info "Global aliases require sudo: sudo qq set <alias> \"<command>\""
 }
 
 # Uninstall function
@@ -449,13 +432,11 @@ main() {
         echo "  --help, -h     Show this help"
         echo
         echo "This script will:"
-        echo "  • Clone the QuickAlias repository from GitHub"
         echo "  • Build the QuickAlias binary"
         echo "  • Install it to $INSTALL_DIR"
         echo "  • Set up shell completions"
         echo "  • Create man page"
         echo "  • Configure system integration"
-        echo "  • Clean up downloaded repository files"
         exit 0
     fi
 
@@ -488,7 +469,6 @@ main() {
         fi
     fi
 
-    clone_repo # Call this before check_go and build_binary to get the source
     check_go
     install_dependencies
     build_binary
