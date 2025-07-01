@@ -1,5 +1,3 @@
-Harika, şimdi kaldırma (uninstall) seçeneğini ekleyip, Arch Linux desteği ile ilgili notları da içeren güncellenmiş bir README hazırlayalım.
-
 QUICKALIAS (qq) - Quick Alias Management
 QUICKALIAS (or qq) is a command-line tool designed to streamline your shell alias management, offering both user-level and global alias control, easy listing, searching, and robust configuration options.
 
