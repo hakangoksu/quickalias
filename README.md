@@ -1,6 +1,3 @@
-Bu düz metni GitHub'da daha çekici ve okunabilir hale getirmek için Markdown biçimlendirme dilini kullanmanız gerekir. GitHub, README.md dosyalarını otomatik olarak Markdown olarak yorumlar ve buna göre görselleştirir.
-
-İşte yukarıdaki metni GitHub'da harika görünecek şekilde Markdown ile biçimlendirilmiş hali:
 
 QUICKALIAS (qq) - Quick Alias Management
 QUICKALIAS (or qq) is a command-line tool designed to streamline your shell alias management, offering both user-level and global alias control, easy listing, searching, and robust configuration options.
